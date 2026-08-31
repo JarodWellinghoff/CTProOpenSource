@@ -1,0 +1,6 @@
+# Direct runtime dependencies. Prefer `pip install .` so package metadata is honored.
+matplotlib>=3.8
+numpy>=1.26
+opencv-python>=4.8
+pydicom>=2.4
+scipy>=1.11

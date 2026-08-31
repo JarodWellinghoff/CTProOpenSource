@@ -1,0 +1,7 @@
+include *.md
+include *.cff
+include *.toml
+include requirements*.txt
+recursive-include examples *.md
+recursive-include review *.md
+recursive-include src/ctpro py.typed

@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software, cite the software release and the method references listed in the final public documentation."
+title: "CTPro Metrics"
+type: software
+version: 0.1.0
+date-released: 2026-08-31
+authors:
+  - name: "CTPro contributors"
+abstract: "Research-oriented Python tools for CT Noise Power Spectrum, Channelized Hotelling Observer, thin-wire MTF, and contrast-dependent MTF analysis."
+keywords:
+  - computed tomography
+  - medical imaging
+  - noise power spectrum
+  - modulation transfer function
+  - channelized Hotelling observer
