@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from typing import Literal, Protocol
 
 import numpy as np
@@ -12,7 +12,6 @@ from scipy.special import eval_laguerre
 from scipy.stats import rankdata
 
 from ._utils import SquareROI, as_image_stack
-
 
 ChannelKind = Literal["gabor", "laguerre-gauss"]
 ResamplingMethod = Literal["bootstrap", "shuffle", "none"]

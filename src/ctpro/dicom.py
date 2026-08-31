@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-import logging
 from pathlib import Path
 
 import numpy as np
 from numpy.typing import NDArray
 
 from ._utils import ensure_directory, natural_sort_key, validate_pixel_spacing
-
 
 LOGGER = logging.getLogger(__name__)
 

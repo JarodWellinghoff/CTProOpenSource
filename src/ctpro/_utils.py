@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
+import math
+import re
 from collections.abc import Sequence
 from dataclasses import dataclass
-import math
 from pathlib import Path
-import re
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
-
 
 FloatArray = NDArray[np.floating]
 

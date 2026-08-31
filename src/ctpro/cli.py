@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import argparse
-from collections.abc import Sequence
-from dataclasses import asdict
 import json
 import math
+from collections.abc import Sequence
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 

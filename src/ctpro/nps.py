@@ -7,9 +7,9 @@ Cartesian ``(x, y) = (column, row)`` coordinates.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-import math
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray

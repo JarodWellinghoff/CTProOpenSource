@@ -3,11 +3,14 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+# ruff: disable[E402]
 pydicom = pytest.importorskip("pydicom")
 from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import CTImageStorage, ExplicitVRLittleEndian, generate_uid
 
 from ctpro.dicom import load_ct_series
+
+# ruff: enable[E402]
 
 
 def _write_ct_slice(
