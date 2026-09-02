@@ -63,7 +63,7 @@ def detect_circular_insert(
     if minimum_radius_px <= 0 or maximum_radius_px <= minimum_radius_px:
         raise ValueError("Invalid Hough radius limits.")
     binary = np.asarray(mask, dtype=bool)
-    normalized = (binary.astype(np.uint8) * 255)
+    normalized = binary.astype(np.uint8) * 255
     circles = None
     for threshold in range(30, 0, -2):
         circles = cv2.HoughCircles(
@@ -136,7 +136,9 @@ def find_mtfc_level(
     return first_descending_crossing(frequency_per_cm, mtfc_curve, level)
 
 
-def _logistic(x: NDArray[np.float64], amplitude: float, offset: float, slope: float, center: float) -> NDArray[np.float64]:
+def _logistic(
+    x: NDArray[np.float64], amplitude: float, offset: float, slope: float, center: float
+) -> NDArray[np.float64]:
     exponent = np.clip(-slope * (x - center), -700, 700)
     return amplitude / (1.0 + np.exp(exponent)) + offset
 
@@ -173,7 +175,9 @@ def _fit_logistic(
     return _logistic(x, *optimized)
 
 
-def _first_consecutive_above(values: NDArray[np.float64], threshold: float, count: int) -> int:
+def _first_consecutive_above(
+    values: NDArray[np.float64], threshold: float, count: int
+) -> int:
     run = 0
     for index, value in enumerate(values):
         if value > threshold:
@@ -294,7 +298,9 @@ def compute_mtfc(
     pixel_size_mm = row_mm
 
     if len(roi_bounds) != 4:
-        raise ValueError("roi_bounds must contain row_start, row_stop, col_start, col_stop.")
+        raise ValueError(
+            "roi_bounds must contain row_start, row_stop, col_start, col_stop."
+        )
     row_start, row_stop, col_start, col_stop = map(int, roi_bounds)
     if not (0 <= row_start < row_stop <= images.shape[1]):
         raise ValueError("ROI row bounds are outside the image.")
@@ -337,19 +343,25 @@ def compute_mtfc(
         distance < analysis_radius_mm
     )
     if not np.any(object_mask) or np.count_nonzero(background_mask) < 2:
-        raise ValueError("Detected insert does not leave valid object/background CNR regions.")
+        raise ValueError(
+            "Detected insert does not leave valid object/background CNR regions."
+        )
 
     middle_slice = cropped_volume[cropped_volume.shape[0] // 2]
     background_sd = float(np.std(middle_slice[background_mask]))
     if background_sd == 0:
         raise ValueError("Background standard deviation is zero; CNR is undefined.")
     cnr = abs(
-        float(np.mean(middle_slice[object_mask]) - np.mean(middle_slice[background_mask]))
+        float(
+            np.mean(middle_slice[object_mask]) - np.mean(middle_slice[background_mask])
+        )
         / background_sd
     )
 
     is_low_contrast = cnr < cnr_threshold
-    oversampling = low_contrast_oversampling if is_low_contrast else high_contrast_oversampling
+    oversampling = (
+        low_contrast_oversampling if is_low_contrast else high_contrast_oversampling
+    )
 
     initial_distance, initial_esf = _radial_esf(
         cropped_average,
@@ -374,7 +386,9 @@ def compute_mtfc(
     candidates: list[
         tuple[int, float, float, NDArray[np.float64], NDArray[np.float64]]
     ] = []
-    moves = np.linspace(-center_search_radius_px, center_search_radius_px, center_search_steps)
+    moves = np.linspace(
+        -center_search_radius_px, center_search_radius_px, center_search_steps
+    )
     for dx in moves:
         for dy in moves:
             candidate_distance, candidate_esf = _radial_esf(
@@ -386,7 +400,9 @@ def compute_mtfc(
             )
             segment = candidate_esf[left:right]
             derivative = np.diff(segment)
-            sign_changes = int(np.sum(np.sign(derivative[1:]) != np.sign(derivative[:-1])))
+            sign_changes = int(
+                np.sum(np.sign(derivative[1:]) != np.sign(derivative[:-1]))
+            )
             slope = abs(float(np.polyfit(np.arange(segment.size), segment, 1)[0]))
             candidates.append(
                 (sign_changes, slope, dx, candidate_distance, candidate_esf)
@@ -479,9 +495,7 @@ def select_square_roi(image_hu: ArrayLike) -> tuple[int, int, int, int]:
         side = min(col_stop - col_start, row_stop - row_start)
         side -= side % 2
         selection.clear()
-        selection.append(
-            (row_start, row_start + side, col_start, col_start + side)
-        )
+        selection.append((row_start, row_start + side, col_start, col_start + side))
 
     selector = RectangleSelector(
         axes,

@@ -28,7 +28,10 @@ def normal_round(value: float) -> int:
 def natural_sort_key(value: str | Path) -> list[object]:
     """Return a case-insensitive natural-sort key."""
     text = str(value)
-    return [int(part) if part.isdigit() else part.casefold() for part in re.split(r"(\d+)", text)]
+    return [
+        int(part) if part.isdigit() else part.casefold()
+        for part in re.split(r"(\d+)", text)
+    ]
 
 
 @dataclass(frozen=True)
@@ -171,7 +174,9 @@ def radial_average(
         positive_steps.extend(np.abs(np.diff(x_axis))[np.abs(np.diff(x_axis)) > 0])
     if bin_width is None:
         if not positive_steps:
-            raise ValueError("At least one coordinate axis must contain multiple samples.")
+            raise ValueError(
+                "At least one coordinate axis must contain multiple samples."
+            )
         bin_width = float(np.min(positive_steps))
     if bin_width <= 0:
         raise ValueError("bin_width must be positive.")
@@ -187,7 +192,9 @@ def radial_average(
     max_bin = int(math.floor(max_radius / bin_width))
     valid = (bin_index <= max_bin) & np.isfinite(image)
 
-    sums = np.bincount(bin_index[valid].ravel(), weights=image[valid].ravel(), minlength=max_bin + 1)
+    sums = np.bincount(
+        bin_index[valid].ravel(), weights=image[valid].ravel(), minlength=max_bin + 1
+    )
     counts = np.bincount(bin_index[valid].ravel(), minlength=max_bin + 1)
     means = np.divide(
         sums,

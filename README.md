@@ -55,7 +55,7 @@ Slice numbers passed to the CLI are **one-based and inclusive**.
 ctpro nps /path/to/uniform-series \
   --dimension 2d \
   --layout circle \
-  --radius-mm 120 \
+  --radius-px 120 \
   --roi-size 40 \
   --start 1 --end 60 \
   --interactive \

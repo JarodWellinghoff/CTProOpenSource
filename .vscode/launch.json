@@ -1,0 +1,495 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "CTPro: NPS 2D",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "ctpro",
+      "args": [
+        "nps",
+        "${input:nps2dDirectory}",
+        "--dimension",
+        "2d",
+        "--layout",
+        "${input:nps2dLayout}",
+        "--roi-size",
+        "${input:nps2dRoiSize}",
+        "--radius-px",
+        "${input:nps2dRadiusPx}",
+        "--side-px",
+        "${input:nps2dSidePx}",
+        "--start",
+        "${input:nps2dStartSlice}",
+        "--end",
+        "${input:nps2dEndSlice}",
+        "--plot"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "CTPro: NPS 3D",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "ctpro",
+      "args": [
+        "nps",
+        "${input:nps3dDirectory}",
+        "--dimension",
+        "3d",
+        "--layout",
+        "circle",
+        "--roi-size",
+        "${input:nps3dVoiSize}",
+        "--radius-px",
+        "${input:nnps3dRadiusPx}",
+        "--start",
+        "${input:nps3dStartSlice}",
+        "--end",
+        "${input:nps3dEndSlice}",
+        "--volumes",
+        "${input:nps3dVolumes}",
+        "--max-memory-gib",
+        "${input:nps3dMaxMemoryGib}",
+        "--plot"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "CTPro: CHO (single scan)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "ctpro",
+      "args": [
+        "cho",
+        "${input:choDirectory1}",
+        "--start",
+        "${input:choStartSlice}",
+        "--end",
+        "${input:choEndSlice}",
+        "--signal-center",
+        "${input:choSignalCenter}",
+        "--background-center",
+        "${input:choBackgroundCenter}",
+        "--roi-size",
+        "${input:choRoiSize}",
+        "--channels",
+        "${input:choChannels}",
+        "--resamples",
+        "${input:choResamples}",
+        "--resampling",
+        "${input:choResampling}",
+        "--internal-noise",
+        "${input:choInternalNoise}",
+        "--regularization",
+        "${input:choRegularization}",
+        "--seed",
+        "${input:choSeed}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "CTPro: CHO (three repeated scans)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "ctpro",
+      "args": [
+        "cho",
+        "${input:choDirectory1}",
+        "${input:choDirectory2}",
+        "${input:choDirectory3}",
+        "--start",
+        "${input:choStartSlice}",
+        "--end",
+        "${input:choEndSlice}",
+        "--signal-center",
+        "${input:choSignalCenter}",
+        "--background-center",
+        "${input:choBackgroundCenter}",
+        "--roi-size",
+        "${input:choRoiSize}",
+        "--channels",
+        "${input:choChannels}",
+        "--resamples",
+        "${input:choResamples}",
+        "--resampling",
+        "${input:choResampling}",
+        "--internal-noise",
+        "${input:choInternalNoise}",
+        "--regularization",
+        "${input:choRegularization}",
+        "--seed",
+        "${input:choSeed}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "CTPro: Thin-wire MTF",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "ctpro",
+      "args": [
+        "mtf",
+        "${input:mtfDirectory}",
+        "--start",
+        "${input:mtfStartSlice}",
+        "--end",
+        "${input:mtfEndSlice}",
+        "--roi-size",
+        "${input:mtfRoiSize}",
+        "--zero-padding-factor",
+        "${input:mtfZeroPaddingFactor}",
+        "--max-frequency",
+        "${input:mtfMaxFrequency}",
+        "--plot"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "CTPro: Circular-insert MTFc",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "ctpro",
+      "args": [
+        "mtfc",
+        "${input:mtfcDirectory}",
+        "--start",
+        "${input:mtfcStartSlice}",
+        "--end",
+        "${input:mtfcEndSlice}",
+        "--roi",
+        "${input:mtfcRoi}",
+        "--hu-range",
+        "${input:mtfcHuLow}",
+        "${input:mtfcHuHigh}",
+        "--cnr-threshold",
+        "${input:mtfcCnrThreshold}",
+        "--window-factor",
+        "${input:mtfcWindowFactor}",
+        "--detection-upsampling",
+        "${input:mtfcDetectionUpsampling}",
+        "--plot"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Pytest: current test file",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["-q", "-s", "${file}"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Pytest: full suite",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["-q", "-s", "tests"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ],
+  "inputs": [
+    {
+      "id": "nps2dDirectory",
+      "type": "promptString",
+      "description": "DICOM directory for 2-D NPS",
+      "default": "Z:/eb028936/CTPro_Images/images/Phan_ACR/Siemens/Force/MayoClinic_5L_20210409_AdultBody/Medium/12mGy_reposition1_scan1/Br44_3.0_0.5_210"
+    },
+    {
+      "id": "nps2dLayout",
+      "type": "pickString",
+      "description": "2-D NPS ROI layout",
+      "options": ["circle", "matrix"],
+      "default": "circle"
+    },
+    {
+      "id": "nps2dRoiSize",
+      "type": "promptString",
+      "description": "2-D NPS ROI side length in pixels",
+      "default": "40"
+    },
+    {
+      "id": "nps2dRadiusPx",
+      "type": "promptString",
+      "description": "Circle-layout radius in px (ignored for matrix layout)",
+      "default": "120"
+    },
+    {
+      "id": "nps2dSidePx",
+      "type": "promptString",
+      "description": "Matrix-layout side length in px (ignored for circle layout)",
+      "default": "300"
+    },
+    {
+      "id": "nps2dStartSlice",
+      "type": "promptString",
+      "description": "First 2-D NPS slice (one-based)",
+      "default": "171"
+    },
+    {
+      "id": "nps2dEndSlice",
+      "type": "promptString",
+      "description": "Last 2-D NPS slice (one-based, inclusive)",
+      "default": "231"
+    },
+    {
+      "id": "nps3dDirectory",
+      "type": "promptString",
+      "description": "DICOM directory for 3-D NPS",
+      "default": "Z:/eb028936/CTPro_Images/images/Phan_ACR/Siemens/Force/MayoClinic_5L_20210409_AdultBody/Medium/12mGy_reposition1_scan1/Br44_3.0_0.5_210"
+    },
+    {
+      "id": "nps3dVoiSize",
+      "type": "promptString",
+      "description": "3-D NPS cubic VOI side length in pixels/slices",
+      "default": "40"
+    },
+    {
+      "id": "nnps3dRadiusPx",
+      "type": "promptString",
+      "description": "3-D NPS circle-layout radius in px",
+      "default": "120"
+    },
+    {
+      "id": "nps3dStartSlice",
+      "type": "promptString",
+      "description": "First 3-D NPS slice (one-based)",
+      "default": "171"
+    },
+    {
+      "id": "nps3dEndSlice",
+      "type": "promptString",
+      "description": "Last 3-D NPS slice (one-based, inclusive)",
+      "default": "231"
+    },
+    {
+      "id": "nps3dVolumes",
+      "type": "promptString",
+      "description": "Number of independent z-direction VOIs",
+      "default": "1"
+    },
+    {
+      "id": "nps3dMaxMemoryGib",
+      "type": "promptString",
+      "description": "Maximum working memory in GiB",
+      "default": "2"
+    },
+    {
+      "id": "choDirectory1",
+      "type": "promptString",
+      "description": "CHO repeated-scan directory 1",
+      "default": "Z:/eb028936/CTPro_Images/images/Phan_ACR/Siemens/Force/MayoClinic_5L_20210409_AdultBody/Medium/12mGy_reposition1_scan1/Br44-3_3.0_0.5_210"
+    },
+    {
+      "id": "choDirectory2",
+      "type": "promptString",
+      "description": "CHO repeated-scan directory 2",
+      "default": "Z:/eb028936/CTPro_Images/images/Phan_ACR/Siemens/Force/MayoClinic_5L_20210409_AdultBody/Medium/12mGy_reposition1_scan2/Br44-3_3.0_0.5_210"
+    },
+    {
+      "id": "choDirectory3",
+      "type": "promptString",
+      "description": "CHO repeated-scan directory 3",
+      "default": "Z:/eb028936/CTPro_Images/images/Phan_ACR/Siemens/Force/MayoClinic_5L_20210409_AdultBody/Medium/12mGy_reposition1_scan3/Br44-3_3.0_0.5_210"
+    },
+    {
+      "id": "choStartSlice",
+      "type": "promptString",
+      "description": "First CHO slice per scan (one-based)",
+      "default": "102"
+    },
+    {
+      "id": "choEndSlice",
+      "type": "promptString",
+      "description": "Last CHO slice per scan (one-based, inclusive)",
+      "default": "150"
+    },
+    {
+      "id": "choSignalCenter",
+      "type": "promptString",
+      "description": "CHO signal center as X,Y pixels",
+      "default": "161,156"
+    },
+    {
+      "id": "choBackgroundCenter",
+      "type": "promptString",
+      "description": "CHO background center as X,Y pixels",
+      "default": "161,256"
+    },
+    {
+      "id": "choRoiSize",
+      "type": "promptString",
+      "description": "CHO ROI side length in pixels",
+      "default": "30"
+    },
+    {
+      "id": "choChannels",
+      "type": "pickString",
+      "description": "CHO channel family",
+      "options": ["gabor", "laguerre-gauss"],
+      "default": "gabor"
+    },
+    {
+      "id": "choResamples",
+      "type": "promptString",
+      "description": "CHO resampling iterations (use a small value while debugging)",
+      "default": "500"
+    },
+    {
+      "id": "choResampling",
+      "type": "pickString",
+      "description": "CHO resampling method",
+      "options": ["bootstrap", "shuffle", "none"],
+      "default": "bootstrap"
+    },
+    {
+      "id": "choInternalNoise",
+      "type": "promptString",
+      "description": "CHO internal-noise factor",
+      "default": "2.25"
+    },
+    {
+      "id": "choRegularization",
+      "type": "promptString",
+      "description": "CHO covariance regularization",
+      "default": "1e-6"
+    },
+    {
+      "id": "choSeed",
+      "type": "promptString",
+      "description": "CHO random seed",
+      "default": "2026"
+    },
+    {
+      "id": "mtfDirectory",
+      "type": "promptString",
+      "description": "Thin-wire MTF DICOM directory",
+      "default": "Z:/eb028936/CTPro_Images/images/Phan_Wire/W_50um/Siemens/Alpha/MayoClinic_5T_20231107_InnerEar/UHR_10mGy/T3D-Br98u-3-0.2_0.2_50"
+    },
+    {
+      "id": "mtfStartSlice",
+      "type": "promptString",
+      "description": "First thin-wire MTF slice (one-based)",
+      "default": "1"
+    },
+    {
+      "id": "mtfEndSlice",
+      "type": "promptString",
+      "description": "Last thin-wire MTF slice (one-based, inclusive)",
+      "default": "5"
+    },
+    {
+      "id": "mtfRoiSize",
+      "type": "promptString",
+      "description": "Thin-wire MTF ROI side length in pixels",
+      "default": "20"
+    },
+    {
+      "id": "mtfZeroPaddingFactor",
+      "type": "promptString",
+      "description": "Thin-wire MTF FFT zero-padding factor",
+      "default": "16"
+    },
+    {
+      "id": "mtfMaxFrequency",
+      "type": "promptString",
+      "description": "Maximum thin-wire MTF frequency in 1/cm",
+      "default": "100"
+    },
+    {
+      "id": "mtfcDirectory",
+      "type": "promptString",
+      "description": "Circular-insert MTFc DICOM directory",
+      "default": "Z:/eb028936/CTPro_Images/images/Phan_ACR/Siemens/Force/MayoClinic_5L_20210409_AdultBody/Medium/12mGy_reposition10_scan1/Br44-3_3.0_0.5_210"
+    },
+    {
+      "id": "mtfcStartSlice",
+      "type": "promptString",
+      "description": "First MTFc slice (one-based)",
+      "default": "15"
+    },
+    {
+      "id": "mtfcEndSlice",
+      "type": "promptString",
+      "description": "Last MTFc slice (one-based, inclusive)",
+      "default": "62"
+    },
+    {
+      "id": "mtfcRoi",
+      "type": "promptString",
+      "description": "MTFc square ROI as center X,Y,SIZE pixels",
+      "default": "256,256,100"
+    },
+    {
+      "id": "mtfcHuLow",
+      "type": "promptString",
+      "description": "Lower HU threshold for insert detection",
+      "default": "-110"
+    },
+    {
+      "id": "mtfcHuHigh",
+      "type": "promptString",
+      "description": "Upper HU threshold for insert detection",
+      "default": "-80"
+    },
+    {
+      "id": "mtfcCnrThreshold",
+      "type": "promptString",
+      "description": "CNR threshold separating low and high contrast",
+      "default": "15"
+    },
+    {
+      "id": "mtfcWindowFactor",
+      "type": "promptString",
+      "description": "MTFc Hann-window width factor",
+      "default": "15"
+    },
+    {
+      "id": "mtfcDetectionUpsampling",
+      "type": "promptString",
+      "description": "MTFc circle-detection upsampling factor",
+      "default": "4"
+    }
+  ]
+}

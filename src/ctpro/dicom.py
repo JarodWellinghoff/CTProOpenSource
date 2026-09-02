@@ -51,7 +51,9 @@ class _HeaderRecord:
 def _pydicom():
     try:
         import pydicom
-    except ImportError as exc:  # pragma: no cover - exercised only in minimal environments
+    except (
+        ImportError
+    ) as exc:  # pragma: no cover - exercised only in minimal environments
         raise ImportError(
             "DICOM support requires pydicom. Install CTPro with "
             "`pip install ctpro-metrics` or install pydicom directly."
@@ -59,7 +61,9 @@ def _pydicom():
     return pydicom
 
 
-def discover_dicom_files(directory: str | Path, *, recursive: bool = False) -> list[Path]:
+def discover_dicom_files(
+    directory: str | Path, *, recursive: bool = False
+) -> list[Path]:
     """Discover readable DICOM files and return them in acquisition order.
 
     Non-DICOM files are skipped with a debug log message. If the directory
@@ -68,7 +72,9 @@ def discover_dicom_files(directory: str | Path, *, recursive: bool = False) -> l
     """
     folder = ensure_directory(directory)
     candidates = folder.rglob("*") if recursive else folder.iterdir()
-    paths = sorted((path for path in candidates if path.is_file()), key=natural_sort_key)
+    paths = sorted(
+        (path for path in candidates if path.is_file()), key=natural_sort_key
+    )
     if not paths:
         raise FileNotFoundError(f"No files were found in {folder}.")
 
@@ -92,10 +98,14 @@ def _read_header_records(paths: Iterable[Path]) -> list[_HeaderRecord]:
         try:
             dataset = pydicom.dcmread(path, stop_before_pixels=True)
         except Exception:
-            LOGGER.debug("Skipping non-DICOM or unreadable file: %s", path, exc_info=True)
+            LOGGER.debug(
+                "Skipping non-DICOM or unreadable file: %s", path, exc_info=True
+            )
             continue
 
-        series_uid = str(dataset.SeriesInstanceUID) if "SeriesInstanceUID" in dataset else None
+        series_uid = (
+            str(dataset.SeriesInstanceUID) if "SeriesInstanceUID" in dataset else None
+        )
 
         instance_number: int | None = None
         if "InstanceNumber" in dataset:
@@ -143,7 +153,11 @@ def _sort_records(records: Sequence[_HeaderRecord]) -> list[_HeaderRecord]:
         return sorted(
             records,
             key=lambda record: (
-                record.instance_number if record.instance_number is not None else float("inf"),
+                (
+                    record.instance_number
+                    if record.instance_number is not None
+                    else float("inf")
+                ),
                 natural_sort_key(record.path.name),
             ),
         )
@@ -182,7 +196,9 @@ def load_ct_series(
 
     folder = ensure_directory(directory)
     candidates = folder.rglob("*") if recursive else folder.iterdir()
-    paths = sorted((path for path in candidates if path.is_file()), key=natural_sort_key)
+    paths = sorted(
+        (path for path in candidates if path.is_file()), key=natural_sort_key
+    )
     records = _read_header_records(paths)
     if not records:
         raise ValueError(f"No readable DICOM files were found in {folder}.")
@@ -222,7 +238,9 @@ def load_ct_series(
     for record in selected:
         image, dataset = read_hu_image(record.path)
         if image.ndim != 2:
-            raise ValueError(f"Expected a 2-D DICOM image in {record.path}, got {image.shape}.")
+            raise ValueError(
+                f"Expected a 2-D DICOM image in {record.path}, got {image.shape}."
+            )
         if first_shape is None:
             first_shape = image.shape
         elif image.shape != first_shape:
@@ -233,7 +251,11 @@ def load_ct_series(
 
         if "PixelSpacing" in dataset:
             spacing = validate_pixel_spacing(dataset.PixelSpacing)
-        elif "ReconstructionDiameter" in dataset and "Rows" in dataset and "Columns" in dataset:
+        elif (
+            "ReconstructionDiameter" in dataset
+            and "Rows" in dataset
+            and "Columns" in dataset
+        ):
             spacing = (
                 float(dataset.ReconstructionDiameter) / int(dataset.Rows),
                 float(dataset.ReconstructionDiameter) / int(dataset.Columns),
@@ -300,10 +322,14 @@ def load_repeated_ct_series(
     for item in series[1:]:
         if item.images_hu.shape[1:] != reference.images_hu.shape[1:]:
             raise ValueError("Repeated scans have inconsistent image dimensions.")
-        if not np.allclose(item.pixel_spacing_mm, reference.pixel_spacing_mm, atol=1e-6):
+        if not np.allclose(
+            item.pixel_spacing_mm, reference.pixel_spacing_mm, atol=1e-6
+        ):
             raise ValueError("Repeated scans have inconsistent pixel spacing.")
         if item.images_hu.shape[0] != reference.images_hu.shape[0]:
-            raise ValueError("Repeated scans must contribute the same number of slices.")
+            raise ValueError(
+                "Repeated scans must contribute the same number of slices."
+            )
 
     combined = np.concatenate([item.images_hu for item in series], axis=0)
     files = tuple(path for item in series for path in item.files)

@@ -187,9 +187,7 @@ def _metrics_from_curves(
     frequency_per_cm: NDArray[np.float64],
     mtf_radial: NDArray[np.float64],
 ) -> MTFMetrics:
-    psf_half_level = 0.5 * (
-        float(np.nanmin(psf_radial)) + float(np.nanmax(psf_radial))
-    )
+    psf_half_level = 0.5 * (float(np.nanmin(psf_radial)) + float(np.nanmax(psf_radial)))
     half_radius = first_descending_crossing(psf_radius_cm, psf_radial, psf_half_level)
     fwhm = 2 * half_radius if np.isfinite(half_radius) else float("nan")
     return MTFMetrics(
@@ -238,7 +236,9 @@ def compute_slice_mtf(
     peak_row_i, peak_col_i = int(round(peak_row)), int(round(peak_col))
     peak_value = float(psf[peak_row_i, peak_col_i])
     if peak_value == 0:
-        raise ValueError("The oversampled PSF has a zero peak and cannot be normalized.")
+        raise ValueError(
+            "The oversampled PSF has a zero peak and cannot be normalized."
+        )
 
     sample_spacing_cm = row_mm / 10.0 / oversampling_factor
     y_axis = (np.arange(psf.shape[0]) - peak_row_i) * sample_spacing_cm
@@ -397,7 +397,9 @@ def adjust_wire_roi(
                     linewidth=2,
                 )
             )
-            self.axes.set_title("Middle-drag to move; scroll to resize; close to accept")
+            self.axes.set_title(
+                "Middle-drag to move; scroll to resize; close to accept"
+            )
             self.axes.set_axis_off()
             self.figure.canvas.draw_idle()
 
@@ -410,7 +412,10 @@ def adjust_wire_roi(
             ):
                 return
             x, y = float(event.xdata), float(event.ydata)
-            if abs(x - self.center[0]) <= self.size / 2 and abs(y - self.center[1]) <= self.size / 2:
+            if (
+                abs(x - self.center[0]) <= self.size / 2
+                and abs(y - self.center[1]) <= self.size / 2
+            ):
                 self.dragging = True
                 self.previous = (x, y)
 
@@ -428,7 +433,9 @@ def adjust_wire_roi(
             ):
                 return
             x, y = float(event.xdata), float(event.ydata)
-            candidate = self.center + np.array([x - self.previous[0], y - self.previous[1]])
+            candidate = self.center + np.array(
+                [x - self.previous[0], y - self.previous[1]]
+            )
             try:
                 SquareROI((float(candidate[0]), float(candidate[1])), self.size).slices(
                     image.shape
@@ -446,9 +453,9 @@ def adjust_wire_roi(
             candidate = max(4, self.size + delta)
             candidate += candidate % 2
             try:
-                SquareROI((float(self.center[0]), float(self.center[1])), candidate).slices(
-                    image.shape
-                )
+                SquareROI(
+                    (float(self.center[0]), float(self.center[1])), candidate
+                ).slices(image.shape)
             except ValueError:
                 return
             self.size = candidate
@@ -482,7 +489,12 @@ def plot_mtf(result: MTFResult, *, show: bool = False) -> tuple[object, object, 
     ):
         curve_axes.axhline(level, linestyle="--", alpha=0.5)
         if np.isfinite(frequency):
-            curve_axes.axvline(frequency, linestyle="--", alpha=0.5, label=f"{label}: {frequency:.2f} 1/cm")
+            curve_axes.axvline(
+                frequency,
+                linestyle="--",
+                alpha=0.5,
+                label=f"{label}: {frequency:.2f} 1/cm",
+            )
     curve_axes.set_ylim(0, 1.1)
     curve_axes.set_xlabel("Spatial frequency (1/cm)")
     curve_axes.set_ylabel("MTF")

@@ -40,7 +40,9 @@ class GaborChannels:
 
     def __post_init__(self) -> None:
         if not self.passbands or not self.orientations_rad or not self.phases_rad:
-            raise ValueError("At least one passband, orientation, and phase are required.")
+            raise ValueError(
+                "At least one passband, orientation, and phase are required."
+            )
         for low, high in self.passbands:
             if low < 0 or high <= low:
                 raise ValueError(f"Invalid Gabor passband {(low, high)}.")
@@ -53,9 +55,7 @@ class GaborChannels:
             width = 4 * np.log(2) / (np.pi * (high - low))
             for orientation in self.orientations_rad:
                 for phase in self.phases_rad:
-                    envelope = np.exp(
-                        -4 * np.log(2) * (x**2 + y**2) / (width**2)
-                    )
+                    envelope = np.exp(-4 * np.log(2) * (x**2 + y**2) / (width**2))
                     carrier = np.cos(
                         2
                         * np.pi
@@ -126,7 +126,9 @@ class CHOResult:
         return float(np.nanmean(self.percent_correct))
 
 
-def _vectorized_roi_coordinates(roi_size_px: int) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+def _vectorized_roi_coordinates(
+    roi_size_px: int,
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     if roi_size_px <= 0:
         raise ValueError("roi_size_px must be positive.")
     coordinate = np.arange(roi_size_px, dtype=float) - (roi_size_px - 1) / 2
@@ -169,7 +171,9 @@ def _flatten_ensemble(rois: ArrayLike) -> NDArray[np.float64]:
     return np.vstack([sample.reshape(-1, order="F") for sample in array])
 
 
-def _auc_from_scores(signal_scores: NDArray[np.float64], background_scores: NDArray[np.float64]) -> float:
+def _auc_from_scores(
+    signal_scores: NDArray[np.float64], background_scores: NDArray[np.float64]
+) -> float:
     """Compute empirical AUC using the Mann-Whitney rank statistic."""
     combined = np.concatenate((background_scores, signal_scores))
     ranks = rankdata(combined, method="average")
@@ -207,7 +211,9 @@ def compute_cho(
     if resampling_method not in {"bootstrap", "shuffle", "none"}:
         raise ValueError(f"Unsupported resampling_method: {resampling_method!r}.")
     if internal_noise < 0 or covariance_regularization < 0:
-        raise ValueError("internal_noise and covariance_regularization must be non-negative.")
+        raise ValueError(
+            "internal_noise and covariance_regularization must be non-negative."
+        )
 
     signal = _flatten_ensemble(signal_rois)
     background = _flatten_ensemble(background_rois)
@@ -254,24 +260,36 @@ def compute_cho(
         signal_channels = channel_matrix.T @ signal_sample.T
         background_channels = channel_matrix.T @ background_sample.T
 
-        mean_difference = np.mean(signal_sample, axis=0) - np.mean(background_sample, axis=0)
+        mean_difference = np.mean(signal_sample, axis=0) - np.mean(
+            background_sample, axis=0
+        )
         signal_covariance = np.atleast_2d(np.cov(signal_channels, rowvar=True))
         background_covariance = np.atleast_2d(np.cov(background_channels, rowvar=True))
         covariance = 0.5 * (signal_covariance + background_covariance)
 
         mean_variance = float(np.trace(covariance) / covariance.shape[0])
-        regularizer = covariance_regularization * max(mean_variance, np.finfo(float).eps)
+        regularizer = covariance_regularization * max(
+            mean_variance, np.finfo(float).eps
+        )
         covariance = covariance + regularizer * np.eye(covariance.shape[0])
 
-        template = np.linalg.pinv(covariance, hermitian=True) @ channel_matrix.T @ mean_difference
+        template = (
+            np.linalg.pinv(covariance, hermitian=True)
+            @ channel_matrix.T
+            @ mean_difference
+        )
         templates[iteration] = template
 
         signal_scores = np.asarray(template @ signal_channels, dtype=float).ravel()
-        background_scores = np.asarray(template @ background_channels, dtype=float).ravel()
+        background_scores = np.asarray(
+            template @ background_channels, dtype=float
+        ).ravel()
 
         if internal_noise > 0:
             noise_scale = internal_noise * float(np.std(background_scores))
-            signal_scores = signal_scores + rng.normal(0.0, noise_scale, signal_scores.size)
+            signal_scores = signal_scores + rng.normal(
+                0.0, noise_scale, signal_scores.size
+            )
             background_scores = background_scores + rng.normal(
                 0.0, noise_scale, background_scores.size
             )
@@ -279,7 +297,9 @@ def compute_cho(
         pooled_variance = 0.5 * (
             float(np.var(signal_scores)) + float(np.var(background_scores))
         )
-        mean_score_difference = float(np.mean(signal_scores) - np.mean(background_scores))
+        mean_score_difference = float(
+            np.mean(signal_scores) - np.mean(background_scores)
+        )
         dprime[iteration] = (
             abs(mean_score_difference) / math.sqrt(pooled_variance)
             if pooled_variance > 0

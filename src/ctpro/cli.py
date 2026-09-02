@@ -58,10 +58,18 @@ def _write_json(summary: dict[str, Any], destination: str | None) -> None:
 
 def _add_common_series_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("directory", help="Directory containing one DICOM series.")
-    parser.add_argument("--start", type=_positive_int, default=1, help="First slice (one-based).")
-    parser.add_argument("--end", type=_positive_int, help="Last slice (one-based, inclusive).")
-    parser.add_argument("--json", dest="json_path", help="Write the numerical summary to JSON.")
-    parser.add_argument("--npz", dest="npz_path", help="Write numerical arrays to a compressed NPZ.")
+    parser.add_argument(
+        "--start", type=_positive_int, default=1, help="First slice (one-based)."
+    )
+    parser.add_argument(
+        "--end", type=_positive_int, help="Last slice (one-based, inclusive)."
+    )
+    parser.add_argument(
+        "--json", dest="json_path", help="Write the numerical summary to JSON."
+    )
+    parser.add_argument(
+        "--npz", dest="npz_path", help="Write numerical arrays to a compressed NPZ."
+    )
     parser.add_argument("--plot", action="store_true", help="Display analysis figures.")
 
 
@@ -78,10 +86,9 @@ def _nps_command(arguments: argparse.Namespace) -> int:
         else ((series.images_hu.shape[2] - 1) / 2, (series.images_hu.shape[1] - 1) / 2)
     )
     if arguments.layout == "circle":
-        radius_px = arguments.radius_mm / col_mm
         centers = place_rois_on_circle(
             series.images_hu.shape[1:],
-            radius_px,
+            arguments.radius_px,
             arguments.roi_size,
             count=arguments.count,
             center_xy=center,
@@ -163,7 +170,9 @@ def _nps_command(arguments: argparse.Namespace) -> int:
                 "radial_nps": result.radial_nps,
                 "roi_centers_xy": result.roi_centers_xy,
             }
-            arrays.update({f"plane_{name}": value for name, value in result.planes.items()})
+            arrays.update(
+                {f"plane_{name}": value for name, value in result.planes.items()}
+            )
             if result.nps_3d is not None:
                 arrays["nps_3d"] = result.nps_3d
             np.savez_compressed(arguments.npz_path, **arrays)
@@ -194,7 +203,9 @@ def _cho_command(arguments: argparse.Namespace) -> int:
 
     if arguments.channels == "gabor":
         channels = GaborChannels(
-            orientations_rad=tuple(math.radians(value) for value in arguments.orientations),
+            orientations_rad=tuple(
+                math.radians(value) for value in arguments.orientations
+            ),
             phases_rad=tuple(math.radians(value) for value in arguments.phases),
         )
     else:
@@ -289,7 +300,9 @@ def _mtf_command(arguments: argparse.Namespace) -> int:
     return 0
 
 
-def _parse_roi_center_size(text: str, image_shape: Sequence[int]) -> tuple[int, int, int, int]:
+def _parse_roi_center_size(
+    text: str, image_shape: Sequence[int]
+) -> tuple[int, int, int, int]:
     try:
         x_text, y_text, size_text = text.split(",", maxsplit=2)
         x, y, size = float(x_text), float(y_text), int(size_text)
@@ -367,8 +380,8 @@ def build_parser() -> argparse.ArgumentParser:
     nps_parser.add_argument("--dimension", choices=("2d", "3d"), default="2d")
     nps_parser.add_argument("--layout", choices=("circle", "matrix"), default="circle")
     nps_parser.add_argument("--roi-size", type=_positive_int, default=40)
-    nps_parser.add_argument("--radius-mm", type=float, default=120.0)
-    nps_parser.add_argument("--side-mm", type=float, default=300.0)
+    nps_parser.add_argument("--radius-px", type=float, default=120.0)
+    nps_parser.add_argument("--side-px", type=float, default=300.0)
     nps_parser.add_argument("--count", type=_positive_int)
     nps_parser.add_argument("--center", help="Pattern center as X,Y pixels.")
     nps_parser.add_argument("--interactive", action="store_true")
@@ -392,11 +405,17 @@ def build_parser() -> argparse.ArgumentParser:
     cho_parser.add_argument("--start", type=_positive_int, default=1)
     cho_parser.add_argument("--end", type=_positive_int)
     cho_parser.add_argument("--signal-center", help="Signal center as X,Y pixels.")
-    cho_parser.add_argument("--background-center", help="Background center as X,Y pixels.")
+    cho_parser.add_argument(
+        "--background-center", help="Background center as X,Y pixels."
+    )
     cho_parser.add_argument("--interactive", action="store_true")
     cho_parser.add_argument("--roi-size", type=_positive_int, required=True)
-    cho_parser.add_argument("--channels", choices=("gabor", "laguerre-gauss"), default="gabor")
-    cho_parser.add_argument("--orientations", type=float, nargs="+", default=[0.0, 90.0])
+    cho_parser.add_argument(
+        "--channels", choices=("gabor", "laguerre-gauss"), default="gabor"
+    )
+    cho_parser.add_argument(
+        "--orientations", type=float, nargs="+", default=[0.0, 90.0]
+    )
     cho_parser.add_argument("--phases", type=float, nargs="+", default=[0.0])
     cho_parser.add_argument("--lg-orders", type=_positive_int, default=6)
     cho_parser.add_argument("--lg-orientations", type=_positive_int, default=3)
@@ -427,7 +446,9 @@ def build_parser() -> argparse.ArgumentParser:
     _add_common_series_arguments(mtfc_parser)
     mtfc_parser.add_argument("--roi", help="Square ROI as center X,Y,SIZE pixels.")
     mtfc_parser.add_argument("--interactive", action="store_true")
-    mtfc_parser.add_argument("--hu-range", type=float, nargs=2, required=True, metavar=("LOW", "HIGH"))
+    mtfc_parser.add_argument(
+        "--hu-range", type=float, nargs=2, required=True, metavar=("LOW", "HIGH")
+    )
     mtfc_parser.add_argument("--cnr-threshold", type=float, default=15.0)
     mtfc_parser.add_argument("--window-factor", type=float, default=15.0)
     mtfc_parser.add_argument("--detection-upsampling", type=_positive_int, default=4)
@@ -442,7 +463,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     arguments = parser.parse_args(argv)
     try:
         return int(arguments.function(arguments))
-    except (FileNotFoundError, ImportError, RuntimeError, ValueError, MemoryError) as exc:
+    except (
+        FileNotFoundError,
+        ImportError,
+        RuntimeError,
+        ValueError,
+        MemoryError,
+    ) as exc:
         parser.error(str(exc))
         return 2
 

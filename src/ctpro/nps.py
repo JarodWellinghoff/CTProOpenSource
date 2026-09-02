@@ -85,6 +85,291 @@ def detrend_plane(
     return roi - trend
 
 
+def get_overlap(x1, x2, y1, y2):
+    overlap_w = np.maximum(
+        0,
+        np.minimum(x2[0], x2[1]) - np.maximum(x1[0], x1[1]),
+    )
+    overlap_h = np.maximum(
+        0,
+        np.minimum(y2[0], y2[1]) - np.maximum(y1[0], y1[1]),
+    )
+    return overlap_w * overlap_h
+
+
+def get_overlaps(x1, x2, y1, y2, idx):
+    if len(x1) == idx:
+        return []
+    overlap_w = np.maximum(
+        0,
+        np.minimum(x2[idx], x2[idx + 1 :]) - np.maximum(x1[idx], x1[idx + 1 :]),
+    )
+    overlap_h = np.maximum(
+        0,
+        np.minimum(y2[idx], y2[idx + 1 :]) - np.maximum(y1[idx], y1[idx + 1 :]),
+    )
+    return overlap_w * overlap_h
+
+
+def any_overlap(r, s, n):
+    angles = np.arange(0, n + 1) * (2 * np.pi / n)
+    xc = np.sin(angles) * r
+    yc = np.cos(angles) * r
+    x1 = xc - s / 2
+    y1 = yc - s / 2
+    x2 = xc + s / 2
+    y2 = yc + s / 2
+    for i in range(n):
+        overlap_a = get_overlap(
+            [x1[i], x1[i + 1]],
+            [x2[i], x2[i + 1]],
+            [y1[i], y1[i + 1]],
+            [y2[i], y2[i + 1]],
+        )
+        if np.any(np.round(overlap_a, 6)):
+            return True
+    return False
+
+
+def find_high(r, s):
+    low = 2
+    high = 4
+    overlap_high = False
+    while not overlap_high:
+        low = high
+        high *= 2
+        overlap_high = any_overlap(r, s, high)
+    return low, high
+
+
+def binary_search(low, high, r, s):
+
+    while low <= high:
+        mid = low + (high - low) // 2
+        overlap_mid = any_overlap(r, s, mid)
+        overlap_mid_plus = any_overlap(r, s, mid + 1)
+
+        if overlap_mid_plus and not overlap_mid:
+            return mid
+        if overlap_mid_plus and overlap_mid:
+            high = mid - 1
+        else:
+            low = mid + 1
+
+
+import numpy as np
+
+
+def normalized_min_separation(n):
+    """
+    Return the minimum horizontal-or-vertical center separation,
+    divided by radius, for n equally spaced axis-aligned squares.
+
+    For a radius r, squares of side s do not overlap when
+
+        s / r <= normalized_min_separation(n)
+
+    Touching is considered non-overlapping.
+    """
+    n = np.asarray(n, dtype=np.int64)
+
+    if np.any(n < 2):
+        raise ValueError("n must be at least 2.")
+
+    # Encodes the distance between the sampled chord directions and
+    # the nearest 45-degree direction.
+    phase = np.select(
+        [
+            n % 8 == 0,
+            n % 4 == 0,
+            n % 2 == 0,
+        ],
+        [
+            4.0,  # divisible by 8
+            0.0,  # divisible by 4 but not 8
+            2.0,  # even but not divisible by 4
+        ],
+        default=1.0,  # odd
+    )
+
+    angular_factor = np.cos(np.pi / 4.0 - np.pi * phase / (4.0 * n))
+
+    return 2.0 * np.sin(np.pi / n) * angular_factor
+
+
+def any_overlap_fast(r, s, n, *, rtol=1e-12):
+    """
+    Test whether any two squares overlap in positive area.
+
+    Assumes:
+      - centers are equally spaced on a circle of radius r;
+      - all squares are axis-aligned;
+      - all squares have side length s;
+      - touching does not count as overlap.
+    """
+    if r <= 0 or s <= 0:
+        raise ValueError("r and s must be positive.")
+
+    if n <= 1:
+        return False
+
+    normalized_limit = float(normalized_min_separation(np.asarray(n)))
+
+    # The tolerance prevents floating-point roundoff from classifying
+    # exact touching as overlap.
+    return s > r * normalized_limit * (1.0 + rtol)
+
+
+def max_square_counts(
+    radii,
+    side_lengths,
+    *,
+    n_max=None,
+    rtol=1e-12,
+):
+    """
+    Calculate the maximum square count for every side/radius pair.
+
+    Returns
+    -------
+    result : ndarray, shape (len(side_lengths), len(radii))
+        result[i, j] is the maximum count for:
+            side length = side_lengths[i]
+            radius      = radii[j]
+
+    Notes
+    -----
+    If n_max is supplied, results are limited to counts <= n_max.
+    Otherwise, a mathematically safe upper bound is calculated.
+    """
+    radii = np.asarray(radii, dtype=np.float64)
+    side_lengths = np.asarray(side_lengths, dtype=np.float64)
+
+    if radii.ndim != 1 or side_lengths.ndim != 1:
+        raise ValueError("radii and side_lengths must be one-dimensional.")
+
+    if radii.size == 0 or side_lengths.size == 0:
+        return np.empty(
+            (side_lengths.size, radii.size),
+            dtype=np.int64,
+        )
+
+    if not np.all(np.isfinite(radii)):
+        raise ValueError("All radii must be finite.")
+
+    if not np.all(np.isfinite(side_lengths)):
+        raise ValueError("All side lengths must be finite.")
+
+    if np.any(radii <= 0) or np.any(side_lengths <= 0):
+        raise ValueError("All radii and side lengths must be positive.")
+
+    if rtol < 0:
+        raise ValueError("rtol cannot be negative.")
+
+    # Geometry is scale invariant, so only s / r matters.
+    ratios = side_lengths[:, None] / radii[None, :]
+
+    if n_max is None:
+        minimum_ratio = float(ratios.min())
+
+        # normalized_min_separation(n) < 2*pi/n, so no count
+        # greater than this bound can possibly fit.
+        n_max = max(
+            2,
+            int(np.ceil(2.0 * np.pi / minimum_ratio)),
+        )
+    elif n_max < 2:
+        raise ValueError("n_max must be at least 2.")
+
+    counts = np.arange(2, n_max + 1, dtype=np.int64)
+
+    thresholds = normalized_min_separation(counts)
+
+    # Treat values differing only by roundoff as touching rather than
+    # positive-area overlap.
+    thresholds *= 1.0 + rtol
+
+    # thresholds itself is not monotonic. Its suffix maximum is.
+    #
+    # suffix_max[i] answers:
+    # "Is there any feasible count >= counts[i]?"
+    suffix_max = np.maximum.accumulate(thresholds[::-1])[::-1]
+
+    # -suffix_max is ascending, as required by searchsorted.
+    indices = (
+        np.searchsorted(
+            -suffix_max,
+            -ratios.ravel(),
+            side="right",
+        )
+        - 1
+    )
+
+    # If even two squares overlap, only one square fits.
+    result = np.ones(ratios.size, dtype=np.int64)
+
+    valid = indices >= 0
+    result[valid] = counts[indices[valid]]
+
+    return result.reshape(ratios.shape)
+
+
+def max_squares(
+    radius,
+    side_length,
+    *,
+    n_max=None,
+    rtol=1e-12,
+):
+    """
+    Return the maximum number of equally spaced, axis-aligned squares
+    centered on a circle without positive-area overlap.
+    """
+    if not np.isfinite(radius):
+        raise ValueError("Radius must be finite.")
+
+    if not np.isfinite(side_length):
+        raise ValueError("Side length must be finite.")
+
+    if radius <= 0 or side_length <= 0:
+        raise ValueError("Radius and side length must be positive.")
+
+    if not np.isfinite(rtol) or rtol < 0:
+        raise ValueError("rtol must be finite and nonnegative.")
+
+    ratio = side_length / radius
+
+    if n_max is None:
+        n_max = max(
+            2,
+            int(np.ceil(2.0 * np.pi * (1.0 + rtol) / ratio)),
+        )
+    else:
+        if isinstance(n_max, (bool, np.bool_)) or not isinstance(
+            n_max, (int, np.integer)
+        ):
+            raise TypeError("n_max must be an integer.")
+
+        n_max = int(n_max)
+
+        if n_max < 2:
+            raise ValueError("n_max must be at least 2.")
+
+    counts = np.arange(2, n_max + 1, dtype=np.int64)
+
+    thresholds = normalized_min_separation(counts) * (1.0 + rtol)
+
+    feasible = ratio <= thresholds
+
+    return int(
+        np.max(
+            counts,
+            where=feasible,
+            initial=1,
+        )
+    )
+
+
 def place_rois_on_circle(
     image_shape: Sequence[int],
     radius_px: float,
@@ -111,8 +396,7 @@ def place_rois_on_circle(
         if roi_size_px >= 2 * radius_px:
             count = 1
         else:
-            ratio = roi_size_px / (2 * radius_px)
-            count = max(1, int(math.floor(math.pi / math.asin(ratio))))
+            count = max_squares(radius_px, roi_size_px)
     if count <= 0:
         raise ValueError("count must be positive.")
 
@@ -174,7 +458,9 @@ def nps_statistics(frequency_per_cm: ArrayLike, nps_curve: ArrayLike) -> NPSMetr
     frequency = np.asarray(frequency_per_cm, dtype=float).ravel()
     curve = np.asarray(nps_curve, dtype=float).ravel()
     if frequency.size != curve.size or frequency.size == 0:
-        raise ValueError("frequency_per_cm and nps_curve must have equal non-zero length.")
+        raise ValueError(
+            "frequency_per_cm and nps_curve must have equal non-zero length."
+        )
     if np.any(curve < 0) or not np.all(np.isfinite(curve)):
         raise ValueError("nps_curve must contain finite, non-negative values.")
 
@@ -251,10 +537,7 @@ def compute_nps_2d(
             noise_levels.append(float(np.std(residual)))
             spectrum = np.fft.fftshift(np.fft.fft2(residual, s=(nfft, nfft)))
             periodogram = (
-                np.abs(spectrum) ** 2
-                * row_cm
-                * col_cm
-                / (roi_size_px * roi_size_px)
+                np.abs(spectrum) ** 2 * row_cm * col_cm / (roi_size_px * roi_size_px)
             )
             nps += periodogram / number_of_samples
 
@@ -344,13 +627,16 @@ def compute_nps_3d(
         slab = images[z_start:z_stop]
 
         for x, y in centers:
-            row_slice, col_slice = SquareROI(
-                (float(x), float(y)), voi_size_px
-            ).slices(images.shape[1:])
+            row_slice, col_slice = SquareROI((float(x), float(y)), voi_size_px).slices(
+                images.shape[1:]
+            )
             voi = np.asarray(slab[:, row_slice, col_slice], dtype=float)
             if remove_trend:
                 voi = np.stack(
-                    [detrend_plane(slice_image, (row_mm, col_mm)) for slice_image in voi],
+                    [
+                        detrend_plane(slice_image, (row_mm, col_mm))
+                        for slice_image in voi
+                    ],
                     axis=0,
                 )
             else:
@@ -362,11 +648,7 @@ def compute_nps_3d(
                 axes=(0, 1, 2),
             )
             periodogram = (
-                np.abs(spectrum) ** 2
-                * row_cm
-                * col_cm
-                * slice_cm
-                / (voi_size_px**3)
+                np.abs(spectrum) ** 2 * row_cm * col_cm * slice_cm / (voi_size_px**3)
             )
             nps += periodogram / number_of_samples
 
@@ -528,20 +810,30 @@ def interactively_adjust_rois(
     return viewer.centers.copy()
 
 
-def plot_nps(result: NPS2DResult | NPS3DResult, *, show: bool = False) -> tuple[object, object]:
+def plot_nps(
+    result: NPS2DResult | NPS3DResult, *, show: bool = False
+) -> tuple[object, object]:
     """Create 2-D and radial NPS figures without forcing a GUI."""
     import matplotlib.pyplot as plt
 
-    image = result.nps_2d if isinstance(result, NPS2DResult) else result.planes["xy_average"]
+    image = (
+        result.nps_2d
+        if isinstance(result, NPS2DResult)
+        else result.planes["xy_average"]
+    )
     figure_2d, axes_2d = plt.subplots(figsize=(6, 5))
     axes_2d.imshow(image, cmap="gray", origin="lower")
-    axes_2d.set_title("2-D NPS" if isinstance(result, NPS2DResult) else "3-D NPS: XY average")
+    axes_2d.set_title(
+        "2-D NPS" if isinstance(result, NPS2DResult) else "3-D NPS: XY average"
+    )
     axes_2d.set_axis_off()
 
     figure_1d, axes_1d = plt.subplots(figsize=(6, 4))
     axes_1d.plot(result.radial_frequency_per_cm, result.radial_nps)
     axes_1d.set_xlabel("Spatial frequency (1/cm)")
-    axes_1d.set_ylabel("NPS (HU²·cm²)" if isinstance(result, NPS2DResult) else "NPS (HU²·cm³)")
+    axes_1d.set_ylabel(
+        "NPS (HU²·cm²)" if isinstance(result, NPS2DResult) else "NPS (HU²·cm³)"
+    )
     axes_1d.set_title("Radially averaged NPS")
     axes_1d.grid(True)
     figure_1d.tight_layout()
