@@ -189,6 +189,29 @@ def _first_consecutive_above(
     return 0
 
 
+def _window_indices(
+    distance_mm: ArrayLike,
+    left_radius_mm: float,
+    right_radius_mm: float,
+) -> tuple[int, int]:
+    """Map a physical radial edge window onto an ESF sampling axis."""
+    distance = np.asarray(distance_mm, dtype=float).ravel()
+    if distance.size < 6:
+        raise ValueError("At least six ESF samples are required for edge scoring.")
+    if np.any(np.diff(distance) <= 0):
+        raise ValueError("ESF distance samples must be strictly increasing.")
+    if not np.isfinite(left_radius_mm) or not np.isfinite(right_radius_mm):
+        raise ValueError("Edge-window radii must be finite.")
+    if right_radius_mm <= left_radius_mm:
+        raise ValueError("The right edge-window radius must exceed the left radius.")
+
+    left = int(np.searchsorted(distance, left_radius_mm))
+    right = int(np.searchsorted(distance, right_radius_mm))
+    left = int(np.clip(left, 1, distance.size - 5))
+    right = int(np.clip(right, left + 3, distance.size - 1))
+    return left, right
+
+
 def _radial_esf(
     image: NDArray[np.float64],
     center_xy: tuple[float, float],
@@ -276,8 +299,8 @@ def compute_mtfc(
     high_contrast_oversampling: int = 10,
     output_oversampling: int = 4,
     insert_radius_range_mm: tuple[float, float] = (6.0, 20.0),
-    center_search_radius_px: float = 2.0,
-    center_search_steps: int = 11,
+    center_search_radius_px: float = 4.0,
+    center_search_steps: int = 21,
     candidate_esf_count: int = 15,
     selected_esf_count: int = 5,
 ) -> MTFcResult:
@@ -310,8 +333,19 @@ def compute_mtfc(
         raise ValueError("MTFc requires an approximately square ROI.")
     if hu_threshold[1] <= hu_threshold[0]:
         raise ValueError("hu_threshold upper value must exceed the lower value.")
-    if detection_upsampling < 1 or output_oversampling < 1:
+    if (
+        detection_upsampling < 1
+        or low_contrast_oversampling < 1
+        or high_contrast_oversampling < 1
+        or output_oversampling < 1
+    ):
         raise ValueError("Oversampling factors must be positive.")
+    if center_search_radius_px < 0:
+        raise ValueError("center_search_radius_px must be non-negative.")
+    if center_search_steps < 1:
+        raise ValueError("center_search_steps must be positive.")
+    if candidate_esf_count < 1 or selected_esf_count < 1:
+        raise ValueError("ESF candidate and selection counts must be positive.")
 
     average_image = np.mean(images, axis=0)
     cropped_average = average_image[row_start:row_stop, col_start:col_stop]
@@ -382,9 +416,20 @@ def compute_mtfc(
     right = len(lsf) - _first_consecutive_above(np.abs(lsf[::-1]), threshold, 3)
     left = max(1, min(left, len(initial_esf) - 5))
     right = max(left + 3, min(right, len(initial_esf) - 1))
+    edge_window_mm = (
+        float(initial_distance[left]),
+        float(initial_distance[right]),
+    )
 
     candidates: list[
-        tuple[int, float, float, NDArray[np.float64], NDArray[np.float64]]
+        tuple[
+            int,
+            float,
+            float,
+            float,
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ]
     ] = []
     moves = np.linspace(
         -center_search_radius_px, center_search_radius_px, center_search_steps
@@ -398,14 +443,26 @@ def compute_mtfc(
                 analysis_radius_mm,
                 oversampling,
             )
-            segment = candidate_esf[left:right]
+            candidate_left, candidate_right = _window_indices(
+                candidate_distance,
+                edge_window_mm[0],
+                edge_window_mm[1],
+            )
+            segment = candidate_esf[candidate_left:candidate_right]
             derivative = np.diff(segment)
             sign_changes = int(
                 np.sum(np.sign(derivative[1:]) != np.sign(derivative[:-1]))
             )
             slope = abs(float(np.polyfit(np.arange(segment.size), segment, 1)[0]))
             candidates.append(
-                (sign_changes, slope, dx, candidate_distance, candidate_esf)
+                (
+                    sign_changes,
+                    slope,
+                    float(dx),
+                    float(dy),
+                    candidate_distance,
+                    candidate_esf,
+                )
             )
 
     candidates.sort(key=lambda item: (item[0], -item[1]))
@@ -421,7 +478,7 @@ def compute_mtfc(
         256,
     )
     curves = []
-    for _, _, _, _, esf in selected:
+    for _, _, _, _, _, esf in selected:
         frequency_per_mm, _, mtf = _esf_to_mtf(
             esf,
             pixel_size_mm / oversampling,

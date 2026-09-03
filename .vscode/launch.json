@@ -13,17 +13,18 @@
         "2d",
         "--layout",
         "${input:nps2dLayout}",
-        "--roi-size",
-        "${input:nps2dRoiSize}",
-        "--radius-px",
-        "${input:nps2dRadiusPx}",
-        "--side-px",
-        "${input:nps2dSidePx}",
+        // "--roi-size",
+        // "${input:nps2dRoiSize}",
+        // "--radius-px",
+        // "${input:nps2dRadiusPx}",
+        // "--side-px",
+        // "${input:nps2dSidePx}",
         "--start",
         "${input:nps2dStartSlice}",
         "--end",
         "${input:nps2dEndSlice}",
-        "--plot"
+        "--plot",
+        "--interactive"
       ],
       "cwd": "${workspaceFolder}",
       "env": {
@@ -44,10 +45,10 @@
         "3d",
         "--layout",
         "circle",
-        "--roi-size",
-        "${input:nps3dVoiSize}",
-        "--radius-px",
-        "${input:nnps3dRadiusPx}",
+        // "--roi-size",
+        // "${input:nps3dVoiSize}",
+        // "--radius-px",
+        // "${input:nnps3dRadiusPx}",
         "--start",
         "${input:nps3dStartSlice}",
         "--end",
@@ -56,7 +57,8 @@
         "${input:nps3dVolumes}",
         "--max-memory-gib",
         "${input:nps3dMaxMemoryGib}",
-        "--plot"
+        "--plot",
+        "--interactive"
       ],
       "cwd": "${workspaceFolder}",
       "env": {
@@ -77,10 +79,10 @@
         "${input:choStartSlice}",
         "--end",
         "${input:choEndSlice}",
-        "--signal-center",
-        "${input:choSignalCenter}",
-        "--background-center",
-        "${input:choBackgroundCenter}",
+        // "--signal-center",
+        // "${input:choSignalCenter}",
+        // "--background-center",
+        // "${input:choBackgroundCenter}",
         "--roi-size",
         "${input:choRoiSize}",
         "--channels",
@@ -94,7 +96,8 @@
         "--regularization",
         "${input:choRegularization}",
         "--seed",
-        "${input:choSeed}"
+        "${input:choSeed}",
+        "--interactive"
       ],
       "cwd": "${workspaceFolder}",
       "env": {
@@ -134,7 +137,8 @@
         "--regularization",
         "${input:choRegularization}",
         "--seed",
-        "${input:choSeed}"
+        "${input:choSeed}",
+        "--interactive"
       ],
       "cwd": "${workspaceFolder}",
       "env": {
@@ -161,7 +165,8 @@
         "${input:mtfZeroPaddingFactor}",
         "--max-frequency",
         "${input:mtfMaxFrequency}",
-        "--plot"
+        "--plot",
+        "--interactive"
       ],
       "cwd": "${workspaceFolder}",
       "env": {
@@ -182,8 +187,10 @@
         "${input:mtfcStartSlice}",
         "--end",
         "${input:mtfcEndSlice}",
-        "--roi",
-        "${input:mtfcRoi}",
+        // "--roi",
+        // "${input:mtfcRoiX}",
+        // "${input:mtfcRoiY}",
+        // "${input:mtfcRoiSize}",
         "--hu-range",
         "${input:mtfcHuLow}",
         "${input:mtfcHuHigh}",
@@ -193,7 +200,8 @@
         "${input:mtfcWindowFactor}",
         "--detection-upsampling",
         "${input:mtfcDetectionUpsampling}",
-        "--plot"
+        "--plot",
+        "--interactive"
       ],
       "cwd": "${workspaceFolder}",
       "env": {
@@ -456,10 +464,22 @@
       "default": "62"
     },
     {
-      "id": "mtfcRoi",
+      "id": "mtfcRoiX",
       "type": "promptString",
-      "description": "MTFc square ROI as center X,Y,SIZE pixels",
-      "default": "256,256,100"
+      "description": "MTFc square ROI center x in px",
+      "default": "150"
+    },
+    {
+      "id": "mtfcRoiY",
+      "type": "promptString",
+      "description": "MTFc square ROI center y in px",
+      "default": "150"
+    },
+    {
+      "id": "mtfcRoiSize",
+      "type": "promptString",
+      "description": "MTFc square ROI center size",
+      "default": "100"
     },
     {
       "id": "mtfcHuLow",

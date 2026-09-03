@@ -301,11 +301,10 @@ def _mtf_command(arguments: argparse.Namespace) -> int:
 
 
 def _parse_roi_center_size(
-    text: str, image_shape: Sequence[int]
+    text: Sequence[int], image_shape: Sequence[int]
 ) -> tuple[int, int, int, int]:
     try:
-        x_text, y_text, size_text = text.split(",", maxsplit=2)
-        x, y, size = float(x_text), float(y_text), int(size_text)
+        x, y, size = text
     except (TypeError, ValueError) as exc:
         raise ValueError("--roi must use X,Y,SIZE format.") from exc
     if size <= 0:
@@ -444,7 +443,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     mtfc_parser = subparsers.add_parser("mtfc", help="Compute circular-insert MTFc.")
     _add_common_series_arguments(mtfc_parser)
-    mtfc_parser.add_argument("--roi", help="Square ROI as center X,Y,SIZE pixels.")
+    mtfc_parser.add_argument("--roi", type=float, nargs=3, metavar=("CX", "CY", "SIZE"))
     mtfc_parser.add_argument("--interactive", action="store_true")
     mtfc_parser.add_argument(
         "--hu-range", type=float, nargs=2, required=True, metavar=("LOW", "HIGH")
