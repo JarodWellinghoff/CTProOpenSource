@@ -157,7 +157,6 @@ def binary_search(low, high, r, s):
             low = mid + 1
 
 
-import numpy as np
 
 
 def normalized_min_separation(n):
