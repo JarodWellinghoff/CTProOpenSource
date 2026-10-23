@@ -229,3 +229,4 @@ outputs/
 DICOMDIR
 
 old/
+/.vscode/
