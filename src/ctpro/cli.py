@@ -70,7 +70,12 @@ def _add_common_series_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--npz", dest="npz_path", help="Write numerical arrays to a compressed NPZ."
     )
-    parser.add_argument("--plot", action="store_true", help="Display analysis figures.")
+    parser.add_argument(
+        "--plot",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Display analysis figures.",
+    )
 
 
 def _nps_command(arguments: argparse.Namespace) -> int:
@@ -383,7 +388,9 @@ def build_parser() -> argparse.ArgumentParser:
     nps_parser.add_argument("--side-px", type=float, default=300.0)
     nps_parser.add_argument("--count", type=_positive_int)
     nps_parser.add_argument("--center", help="Pattern center as X,Y pixels.")
-    nps_parser.add_argument("--interactive", action="store_true")
+    nps_parser.add_argument(
+        "--interactive", action=argparse.BooleanOptionalAction, default=False
+    )
     nps_parser.add_argument("--volumes", type=_positive_int)
     nps_parser.add_argument("--zero-padding-factor", type=_positive_int, default=8)
     nps_parser.add_argument("--minimum-fft-size", type=_positive_int, default=160)
@@ -407,7 +414,9 @@ def build_parser() -> argparse.ArgumentParser:
     cho_parser.add_argument(
         "--background-center", help="Background center as X,Y pixels."
     )
-    cho_parser.add_argument("--interactive", action="store_true")
+    cho_parser.add_argument(
+        "--interactive", action=argparse.BooleanOptionalAction, default=False
+    )
     cho_parser.add_argument("--roi-size", type=_positive_int, required=True)
     cho_parser.add_argument(
         "--channels", choices=("gabor", "laguerre-gauss"), default="gabor"
@@ -435,7 +444,9 @@ def build_parser() -> argparse.ArgumentParser:
     _add_common_series_arguments(mtf_parser)
     mtf_parser.add_argument("--center", help="Wire center as X,Y pixels.")
     mtf_parser.add_argument("--roi-size", type=_positive_int, default=20)
-    mtf_parser.add_argument("--interactive", action="store_true")
+    mtf_parser.add_argument(
+        "--interactive", action=argparse.BooleanOptionalAction, default=False
+    )
     mtf_parser.add_argument("--oversampling", type=_positive_int)
     mtf_parser.add_argument("--zero-padding-factor", type=_positive_int, default=16)
     mtf_parser.add_argument("--max-frequency", type=float, default=100.0)
@@ -444,19 +455,12 @@ def build_parser() -> argparse.ArgumentParser:
     mtfc_parser = subparsers.add_parser("mtfc", help="Compute circular-insert MTFc.")
     _add_common_series_arguments(mtfc_parser)
     mtfc_parser.add_argument("--roi", type=float, nargs=3, metavar=("CX", "CY", "SIZE"))
-    mtfc_parser.add_argument("--interactive", action="store_true")
     mtfc_parser.add_argument(
-        "--hu-range", type=float, nargs=2, required=True, metavar=("LOW", "HIGH")
+        "--interactive", action=argparse.BooleanOptionalAction, default=False
     )
-    mtfc_parser.add_argument("--cnr-threshold", type=float, default=15.0)
-    mtfc_parser.add_argument("--window-factor", type=float, default=15.0)
-    mtfc_parser.add_argument("--detection-upsampling", type=_positive_int, default=4)
-    mtfc_parser.set_defaults(function=_mtfc_command)
-
-    return parser
-
-
-def main(argv: Sequence[str] | None = None) -> int:
+E"))
+    mtfc_parser.add_argument("--interactive", action="store_true")
+e = None) -> int:
     """Run the command-line interface."""
     parser = build_parser()
     arguments = parser.parse_args(argv)
